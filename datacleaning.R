@@ -50,7 +50,7 @@ deltafoodstate$Q10 <- if_else(deltafoodstate$Q10 %in% c("we like crawfish baby",
 deltafoodstate$Q10 <- if_else(deltafoodstate$Q10 %in% c("tomato", "idktomato’s?"), "tomatoes", deltafoodstate$Q10)
 deltafoodstate$Q10 <- if_else(deltafoodstate$Q10 %in% c("watermelons", "water melon"), "watermelon", deltafoodstate$Q10)
 deltafoodstate$Q10 <- if_else(deltafoodstate$Q10 %in% c("turkeys"), "turkey", deltafoodstate$Q10)
-deltafoodstate$Q10 <- if_else(deltafoodstate$Q10 %in% c("sugar", "sugar cane"), "turkey", deltafoodstate$Q10)
+deltafoodstate$Q10 <- if_else(deltafoodstate$Q10 %in% c("sugar", "sugar cane", "sugar cane field", "suger"), "sugarcane", deltafoodstate$Q10)
 
 
 summaryfoodstate <- deltafoodstate %>% group_by(Q10) %>%
