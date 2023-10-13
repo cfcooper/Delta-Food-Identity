@@ -56,7 +56,36 @@ deltafoodstate$Q10 <- if_else(deltafoodstate$Q10 %in% c("sugar", "sugar cane", "
 summaryfoodstate <- deltafoodstate %>% group_by(Q10) %>%
   summarise(count = n())
 
+##wildness -----------------------------------------------------------------------------------------
+
+deltawild <- select(deltafood, c("ID","Q33"))
+deltawild$Q33 <- str_remove(deltawild$Q33, "(including dandelion greens, sorrel, and lamb's quarters, etc)")
+
+deltawild %<>% mutate(t2 = Q33) %>% separate_rows(Q33, sep = ",")
+deltawild$Q33 <- if_else(deltawild$Q33 %in% c("Wild Greens ()"), "Wild Greens", deltawild$Q33)
+
+summarywild <- deltawild %>% group_by(Q33) %>%
+  summarise(count = n())
+
+ggplot() + geom_col(data= summarywild, aes(x = reorder(Q33, -count), y= count))
 
 
 
 
+
+##demographics -----------------------------------------------------------------------
+
+
+deltanumeric <- read.csv("DFInumeric.csv")
+deltanumeric <- deltanumeric[!deltanumeric$Q2 == 9,]
+deltanumeric <- deltanumeric[!deltanumeric$Q2 == 10,]
+deltanumeric$ID <- 1:nrow(deltanumeric)
+
+deltanumeric <- deltanumeric[!deltanumeric$Q23 == 3,]
+deltanumeric <- deltanumeric[!deltanumeric$Q23 == 4,]
+
+deltanumeric$Q23 <- ifelse(deltanumeric$Q23 == 1, 0, 1)
+
+
+trustreg <- lm(Q20_1 ~ Q22 + Q23 + Q26, data= deltanumeric)
+summary(trustreg)
