@@ -1,0 +1,227 @@
+state,county,fips
+AR,arkansas,5001
+AR,ashley,5003
+AR,baxter,5005
+AR,bradley,5011
+AR,calhoun,5013
+AR,chicot,5017
+AR,clay,5021
+AR,cleveland,5025
+AR,craighead,5031
+AR,crittenden,5035
+AR,cross,5037
+AR,dallas,5039
+AR,desha,5041
+AR,drew,5043
+AR,fulton,5049
+AR,grant,5053
+AR,greene,5055
+AR,independence,5063
+AR,izard,5065
+AR,jackson,5067
+AR,jefferson,5069
+AR,lawrence,5075
+AR,lee,5077
+AR,lincoln,5079
+AR,lonoke,5085
+AR,marion,5089
+AR,mississippi,5093
+AR,monroe,5095
+AR,ouachita,5103
+AR,phillips,5107
+AR,poinsett,5111
+AR,prairie,5117
+AR,pulaski,5119
+AR,randolph,5121
+AR,searcy,5129
+AR,sharp,5135
+AR,st francis,5123
+AR,stone,5137
+AR,union,5139
+AR,van buren,5141
+AR,white,5145
+AR,woodruff,5147
+IL,alexander,17003
+IL,franklin,17055
+IL,gallatin,17059
+IL,hamilton,17065
+IL,hardin,17069
+IL,jackson,17077
+IL,johnson,17087
+IL,massac,17127
+IL,perry,17145
+IL,pope,17151
+IL,pulaski,17153
+IL,randolph,17157
+IL,saline,17165
+IL,union,17181
+IL,white,17193
+IL,williamson,17199
+KY,ballard,21007
+KY,caldwell,21033
+KY,calloway,21035
+KY,carlisle,21039
+KY,christian,21047
+KY,crittenden,21055
+KY,fulton,21075
+KY,graves,21083
+KY,henderson,21101
+KY,hickman,21105
+KY,hopkins,21107
+KY,livingston,21139
+KY,lyon,21143
+KY,marshall,21157
+KY,mccracken,21145
+KY,mclean,21149
+KY,muhlenberg,21177
+KY,todd,21219
+KY,trigg,21221
+KY,union,21225
+KY,webster,21233
+LA,acadia,22001
+LA,allen,22003
+LA,ascension,22005
+LA,assumption,22007
+LA,avoyelles,22009
+LA,bienville,22013
+LA,caldwell,22021
+LA,catahoula,22025
+LA,claiborne,22027
+LA,concordia,22029
+LA,east baton rouge,22033
+LA,east carroll,22035
+LA,east feliciana,22037
+LA,evangeline,22039
+LA,franklin,22041
+LA,grant,22043
+LA,iberia,22045
+LA,iberville,22047
+LA,jackson,22049
+LA,jefferson,22051
+LA,la salle,22059
+LA,lafourche,22057
+LA,lincoln,22061
+LA,livingston,22063
+LA,madison,22065
+LA,morehouse,22067
+LA,natchitoches,22069
+LA,orleans,22071
+LA,ouachita,22073
+LA,plaquemines,22075
+LA,pointe coupee,22077
+LA,rapides,22079
+LA,red river,22081
+LA,richland,22083
+LA,st bernard,22087
+LA,st charles,22089
+LA,st helena,22091
+LA,st james,22093
+LA,st john the baptist,22095
+LA,st landry,22097
+LA,st martin,22099
+LA,st mary,22101
+LA,tangipahoa,22105
+LA,tensas,22107
+LA,union,22111
+LA,washington,22117
+LA,webster,22119
+LA,west baton rouge,22121
+LA,west carroll,22123
+LA,west feliciana,22125
+LA,winn,22127
+MO,bollinger,29017
+MO,butler,29023
+MO,cape girardeau,29031
+MO,carter,29035
+MO,crawford,29055
+MO,dent,29065
+MO,douglas,29067
+MO,dunklin,29069
+MO,howell,29091
+MO,iron,29093
+MO,madison,29123
+MO,mississippi,29133
+MO,new madrid,29143
+MO,oregon,29149
+MO,ozark,29153
+MO,pemiscot,29155
+MO,perry,29157
+MO,phelps,29161
+MO,reynolds,29179
+MO,ripley,29181
+MO,scott,29201
+MO,shannon,29203
+MO,st francois,29187
+MO,stoddard,29207
+MO,texas,29215
+MO,washington,29221
+MO,wayne,29223
+MO,wright,29229
+MS,adams,28001
+MS,amite,28005
+MS,attala,28007
+MS,benton,28009
+MS,bolivar,28011
+MS,carroll,28015
+MS,claiborne,28021
+MS,coahoma,28027
+MS,copiah,28029
+MS,covington,28031
+MS,de soto,28033
+MS,franklin,28037
+MS,grenada,28043
+MS,hinds,28049
+MS,holmes,28051
+MS,humphreys,28053
+MS,issaquena,28055
+MS,jasper,28061
+MS,jefferson,28063
+MS,jefferson davis,28065
+MS,lafayette,28071
+MS,lawrence,28077
+MS,leflore,28083
+MS,lincoln,28085
+MS,madison,28089
+MS,marion,28091
+MS,marshall,28093
+MS,montgomery,28097
+MS,panola,28107
+MS,pike,28113
+MS,quitman,28119
+MS,rankin,28121
+MS,sharkey,28125
+MS,simpson,28127
+MS,smith,28129
+MS,sunflower,28133
+MS,tallahatchie,28135
+MS,tate,28137
+MS,tippah,28139
+MS,tunica,28143
+MS,union,28145
+MS,walthall,28147
+MS,warren,28149
+MS,washington,28151
+MS,wilkinson,28157
+MS,yalobusha,28161
+MS,yazoo,28163
+TN,benton,47005
+TN,carroll,47017
+TN,chester,47023
+TN,crockett,47033
+TN,decatur,47039
+TN,dyer,47045
+TN,fayette,47047
+TN,gibson,47053
+TN,hardeman,47069
+TN,hardin,47071
+TN,haywood,47075
+TN,henderson,47077
+TN,henry,47079
+TN,lake,47095
+TN,lauderdale,47097
+TN,madison,47113
+TN,mcnairy,47109
+TN,obion,47131
+TN,shelby,47157
+TN,tipton,47167
+TN,weakley,47183

@@ -15,11 +15,9 @@ windowsFonts(A = windowsFont("Times New Roman"))
 
 ## read in data ----------------------------------------------------------------
 
-deltafood <- read.csv("DFI.TEST2.csv")
+deltafood <- readRDS("cleandata.RDS")
 
-deltafood <- deltafood[!deltafood$Q2 == "My state is not listed",]
-deltafood <- deltafood[!deltafood$Q2 == "I do not reside in the United States",]
-deltafoodAR <- deltafood[deltafood$Q2 == "Arkansas",]
+deltafoodAR <- deltafood[deltafood$Q2 == "arkansas",]
 deltafoodAR <- deltafoodAR[!is.na(deltafoodAR$LocationLatitude),]
 
 
