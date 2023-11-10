@@ -537,7 +537,7 @@ deltasum <- delta %>% group_by(Q11) %>%
 
 
 delta %<>% mutate(t2 = Q11) %>% separate_rows(Q11, sep = ",")
-delta %<>% mutate(t2 = Q11) %>% separate_rows(Q11, sep = "and")
+delta %<>% mutate(t2 = Q11) %>% separate_rows(Q11, sep = " and ")
 delta %<>% mutate(t2 = Q11) %>% separate_rows(Q11, sep = " or ")
 delta %<>% mutate(t2 = Q11) %>% separate_rows(Q11, sep = "-")
 delta %<>% mutate(t2 = Q11) %>% separate_rows(Q11, sep = "&")
@@ -662,16 +662,17 @@ delta$Q12 <- if_else(str_detect(delta$Q12,"cuisine is influenced"), "none", delt
 
 delta$Q12 <- if_else(delta$Q12 %in% c("alligators","alligator"), "alligator", delta$Q12)
 delta$Q12 <- if_else(delta$Q12 %in% c("apple","apples","apple pie","apple trees"), "apples", delta$Q12)
-delta$Q12 <- if_else(delta$Q12 %in% c("avocado"), "avocados", delta$Q12)
+delta$Q12 <- if_else(delta$Q12 %in% c("avocado","avacados","avacodos"), "avocados", delta$Q12)
 delta$Q12 <- if_else(delta$Q12 %in% c("banana","bananas","banana's"), "bananas", delta$Q12)
 delta$Q12 <- if_else(delta$Q12 %in% c("any type of berry"), "berries", delta$Q12)
+delta$Q12 <- if_else(delta$Q12 %in% c("fresh food","fresh foods"), "berries", delta$Q12)
 delta$Q12 <- if_else(delta$Q12 %in% c("black berries"), "blackberries", delta$Q12)
 delta$Q12 <- if_else(delta$Q12 %in% c("carrot","more carrots to be completely honest"), "carrots", delta$Q12)
 delta$Q12 <- if_else(delta$Q12 %in% c("vegetables like carrot etc"), "vegetables,carrots", delta$Q12)
 delta$Q12 <- if_else(delta$Q12 %in% c("citrus fruits"), "citrus", delta$Q12)
 delta$Q12 <- if_else(delta$Q12 %in% c("coffe","coffee beans"), "coffee", delta$Q12)
 delta$Q12 <- if_else(delta$Q12 %in% c("coconuts","coconut gloves","cocunuts"), "coconut", delta$Q12)
-delta$Q12 <- if_else(delta$Q12 %in% c("corn corn corn corn","corn on the cob","con","cirn"), "coconut", delta$Q12)
+delta$Q12 <- if_else(delta$Q12 %in% c("corn corn corn corn","corn on the cob","con","cirn","maize"), "corn", delta$Q12)
 delta$Q12 <- if_else(delta$Q12 %in% c("crayfish"), "crawfish", delta$Q12)
 delta$Q12 <-gsub("crawdads", "crawfish",delta$Q12, fixed = TRUE)
 delta$Q12 <-gsub("wine grapes", "winegrapes",delta$Q12, fixed = TRUE)
@@ -682,14 +683,13 @@ delta$Q12 <- if_else(delta$Q12 %in% c("fruits  vegetables in general","fruits ve
 delta$Q12 <- if_else(str_detect(delta$Q12,"warm climate and fertile soil, which"), "fruits,vegetables",delta$Q12)
 delta$Q12 <- if_else(delta$Q12 %in% c("fresh vegetables","vegetable","vegetables.","veggies","any vegetables"), "vegetables", delta$Q12)
 delta$Q12 <- if_else(delta$Q12 %in% c("watermelons","water melon"), "watermelon", delta$Q12)
-delta$Q12 <- if_else(delta$Q12 %in% c("tomato","tomatos","totamo"), "tomatoes", delta$Q12)
+delta$Q12 <- if_else(delta$Q12 %in% c("potato","potatos","mashed potatoes"), "potatoes", delta$Q12)
 delta$Q12 <- if_else(str_detect(delta$Q12,"foods that i wished grew"), "tomatoes",delta$Q12)
 delta$Q12 <- if_else(delta$Q12 %in% c("sweet white corn","sweet corn"), "sweetcorn", delta$Q12)
 delta$Q12 <- if_else(delta$Q12 %in% c("soy","soy bean","soy beans"), "soybeans", delta$Q12)
 delta$Q12 <- if_else(delta$Q12 %in% c("strawberries","strawberry's","strawberry"), "strawberries", delta$Q12)
 delta$Q12 <- if_else(delta$Q12 %in% c("sugar cane","sugar"), "sugarcane", delta$Q12)
 delta$Q12 <- if_else(delta$Q12 %in% c("wild nurt","wild nut"), "wildnuts", delta$Q12)
-
 delta$Q12 <- if_else(str_detect(delta$Q12,"would give sustainability"), "diverseproduce",delta$Q12)
 delta$Q12 <- if_else(str_detect(delta$Q12,"could adapt to different environments and become"), "diverseproduce",delta$Q12)
 delta$Q12 <- if_else(str_detect(delta$Q12,"an item from each food group"), "diverseproduce",delta$Q12)
@@ -698,15 +698,50 @@ delta$Q12 <- if_else(delta$Q12 %in% c("cabbage, lettuce, beets, lots of vegetabl
 delta$Q12 <- if_else(delta$Q12 %in% c("carrots, milk, and any other vegetables"), "carrots, milk, vegetables", delta$Q12)
 delta$Q12 <- if_else(delta$Q12 %in% c("cattle ranches","cattle","steak","cows"), "beef", delta$Q12)
 delta$Q12 <- if_else(delta$Q12 %in% c("grain bread"), "grain", delta$Q12)
+delta$Q12 <- if_else(delta$Q12 %in% c("more vegetables","more green vegetables"), "vegetables", delta$Q12)
+delta$Q12 <-gsub("green beans", "greenbeans",delta$Q12, fixed = TRUE)
+delta$Q12 <-gsub("sweet potatoes", "sweetpotatoes",delta$Q12, fixed = TRUE)
+delta$Q12 <-gsub("sea food", "seafood",delta$Q12, fixed = TRUE)
+delta$Q12 <- if_else(str_detect(delta$Q12,"more good seafood"), "seafood",delta$Q12)
+delta$Q12 <- if_else(str_detect(delta$Q12,"people should grow peas"), "peas,nuts",delta$Q12)
+delta$Q12 <- if_else(str_detect(delta$Q12,"plentitude"), "none",delta$Q12)
+delta$Q12 <- if_else(str_detect(delta$Q12,"quality and production"), "all",delta$Q12)
+delta$Q12 <- if_else(str_detect(delta$Q12,"pizza and philly steaks"), "none",delta$Q12)
+delta$Q12 <- if_else(str_detect(delta$Q12,"i wish there was more corn"), "corn",delta$Q12)
+delta$Q12 <- if_else(str_detect(delta$Q12,"kinds of mushrooms edible"), "mushrooms",delta$Q12)
+delta$Q12 <- if_else(str_detect(delta$Q12,"pizza in that region"), "pizza",delta$Q12)
+delta$Q12 <- if_else(str_detect(delta$Q12,"vegetables could be made"), "vegetables",delta$Q12)
+delta$Q12 <- if_else(str_detect(delta$Q12,"lobser bisk for sure"), "lobster",delta$Q12)
+delta$Q12 <- if_else(str_detect(delta$Q12,"more fresh produce"), "diverseproduce",delta$Q12)
+delta$Q12 <- if_else(delta$Q12 %in% c("more catfish farms"), "catfish", delta$Q12)
+delta$Q12 <- if_else(delta$Q12 %in% c("more vegetables like zucchini, broccoli, potatoes,"), "zucchini, broccoli, potatoes", delta$Q12)
+delta$Q12 <- if_else(delta$Q12 %in% c("more herbs"), "herbs", delta$Q12)
+delta$Q12 <-gsub("race", "rice",delta$Q12, fixed = TRUE)
+delta$Q12 <- if_else(str_detect(delta$Q12,"happy buffalo"), "buffalo",delta$Q12)
+delta$Q12 <-gsub("lima beans", "limabeans",delta$Q12, fixed = TRUE)
+delta$Q12 <- if_else(delta$Q12 %in% c("create fish. pickled cucumber. cucumber."), "crawfish, cucumber", delta$Q12)
 
 
+delta %<>% mutate(t2 = Q12) %>% separate_rows(Q12, sep = ",")
+delta %<>% mutate(t2 = Q12) %>% separate_rows(Q12, sep = "and ")
+delta %<>% mutate(t2 = Q12) %>% separate_rows(Q12, sep = " or ")
+delta %<>% mutate(t2 = Q12) %>% separate_rows(Q12, sep = "-")
+delta %<>% mutate(t2 = Q12) %>% separate_rows(Q12, sep = "&")
 
+delta$Q12 <- str_trim(delta$Q12, "right")
+delta$Q12 <- str_trim(delta$Q12, "left")
 
-
-
-
-
-
+delta$Q12 <- if_else(delta$Q12 %in% c("avocado","avocadoes"), "avocados", delta$Q12)
+delta$Q12 <- if_else(delta$Q12 %in% c("banana","bannanas"), "bananas", delta$Q12)
+delta$Q12 <- if_else(delta$Q12 %in% c("burgers","burger"), "beef", delta$Q12)
+delta$Q12 <- if_else(delta$Q12 %in% c("cantelope","cantaloupe"), "cantaloupe", delta$Q12)
+delta$Q12 <- if_else(delta$Q12 %in% c("chicken fried chicken","chickens","tyson chicken.","chic fil la","fried chicken","tyson foods"), "chicken", delta$Q12)
+delta$Q12 <- if_else(delta$Q12 %in% c("cheeses"), "cheese", delta$Q12)
+delta$Q12 <- if_else(delta$Q12 %in% c("corn for human consumption","more corn"), "sweet corn", delta$Q12)
+delta$Q12 <- if_else(delta$Q12 %in% c("crabs","blue crabs"), "crab", delta$Q12)
+delta$Q12 <- if_else(delta$Q12 %in% c("loose leaf lettuce.","lettice"), "lettuce", delta$Q12)
+delta$Q12 <- if_else(delta$Q12 %in% c("more fresh fish","fiah"), "fish", delta$Q12)
+delta$Q12 <- if_else(delta$Q12 %in% c("fruits  vegetables in general","health food","healthy foods like organic"), "produce", delta$Q12)
 
 
 
