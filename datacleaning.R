@@ -1,6 +1,5 @@
 
 
-
 library(dplyr)
 library(formattable)
 library(ggplot2)
@@ -409,7 +408,7 @@ write.csv(statesum, "statesummary.csv")
 
 ##total delta cleaning (Q11)-------------------------------------------------------------
 
-rm(list=ls()) # Caution: this clears the Environment
+#rm(list=ls()) # Caution: this clears the Environment
 
 
 delta <- select(deltafood, c("ResponseId","Q2","Q11"))
@@ -470,7 +469,7 @@ delta <- delta[!delta$ResponseId %in% deltafoodbad$ResponseId,]
 
 delta$Q11 <- if_else(delta$Q11 %in% c("?","alot","idk", "not sure", "no","", "i'm not sure", "dont know", "don't know","no idea","no idew","not surw","unknown","unsure","unsure don't know",
                                       "i have no idea", "n/a","n\a", "nice","i don't know","nothing really","no clue","nothing","i don't really know","i wouldn't know nothing about that",
-                                      "na","can't recall","i don't really know about this","idk tbh","i don't know what to do","nothing comes to mind"), 
+                                      "na","can't recall","i don't really know about this","idk tbh","i don't know what to do","nothing comes to mind","n\a"), 
                               "none", delta$Q11)
 delta$Q11 <- if_else(delta$Q11 %in% c("barbecue","barbeque","bbq"), "barbecue", delta$Q11)
 delta$Q11 <- if_else(str_detect(delta$Q11,"bbq"), "barbecue", delta$Q11)
@@ -528,7 +527,7 @@ delta$Q11 <-gsub("to be honest", "",delta$Q11, fixed = TRUE)
 delta$Q11 <-gsub("dishes", "",delta$Q11, fixed = TRUE)
 delta$Q11 <- if_else(delta$Q11 %in% c("pound pecan pie create fish pickled cucumber cucumber"), "pecanpie, fish, pickledcucumber, cucumber", delta$Q11)
 delta$Q11 <- if_else(delta$Q11 %in% c("mississippi mud pie fried dill pickles delta tamales pressed po'boy"), "mudpie, friedpickles, deltatamales, poboy", delta$Q11)
-
+delta$Q11 <-gsub("pissa", "pizza",delta$Q11, fixed = TRUE)
 
 
 
@@ -605,12 +604,32 @@ delta$Q11 <- if_else(delta$Q11 %in% c("mississippi seafood"), "msseafood", delta
 delta$Q11 <- if_else(delta$Q11 %in% c("mustard greens"), "mustardgreens", delta$Q11)
 delta$Q11 <- if_else(delta$Q11 %in% c("picked feet"), "pickledfeet", delta$Q11)
 
+delta$Q11 <-gsub("sweat potatoes", "sweetpotatoes",delta$Q11, fixed = TRUE)
+delta$Q11 <-gsub("sweet potatoes", "sweetpotatoes",delta$Q11, fixed = TRUE)
+delta$Q11 <-gsub("corn on the cob", "sweetcorn",delta$Q11, fixed = TRUE)
+delta$Q11 <-gsub("soy bean", "soybeans",delta$Q11, fixed = TRUE)
+delta$Q11 <-gsub("rice/whit", "rice",delta$Q11, fixed = TRUE)
+delta$Q11 <-gsub("pulled porks", "pork",delta$Q11, fixed = TRUE)
+delta$Q11 <- if_else(delta$Q11 %in% c("soulfood is typically associated with the mississippi river region"), "soulfood", delta$Q11)
 
+delta$Q11 <- if_else(delta$Q11 %in% c("catfish"), "fish", delta$Q11)
 
 
 delta <- delta[!delta$Q11 == "",]
 
 
+delta$Q11 <-gsub("\\s+", 
+                          " ",delta$Q11, fixed = TRUE)
+
+
+delta %<>% mutate(t2 = Q11) %>% separate_rows(Q11, sep = "\\s+")
+
+delta$Q11 <- str_trim(delta$Q11, "right")
+delta$Q11 <- str_trim(delta$Q11, "left")
+
+delta$Q11 <- if_else(delta$Q11 %in% c("fish","crawfish","shrimp"), "seafood", delta$Q11)
+
+write.csv(delta,"deltacurrent.csv")
 
 deltasum2 <- delta %>% group_by(Q11) %>%
   summarise(count = n())
