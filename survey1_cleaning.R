@@ -13,12 +13,8 @@ rm(list=ls()) # Caution: this clears the Environment
 
 ## read in data ----------------------------------------------------------------
 
-deltafood <- read.csv("DFI1024.csv")
+deltafood <- read.csv("rawdata/DFI_survey1.csv")
 
-deltafood <- deltafood[!deltafood$Q2 == "My state is not listed",]
-deltafood <- deltafood[!deltafood$Q2 == "I do not reside in the United States",]
-deltafood <- deltafood[!deltafood$Q10 == "",]
-#deltafood <- deltafood[!deltafood$duration < 100,]
 deltafood$ID <- 1:nrow(deltafood)
 
 deltafood$Q2 <- tolower(deltafood$Q2)
@@ -39,10 +35,7 @@ deltafoodstate$Q11 <- str_trim(deltafoodstate$Q11, "left")
 
 
 
-#MAIN CLEANING OVER----------------------------------------------------------------------------------------------
-
-
-
+#MAIN CLEANING ----------------------------------------------------------------------------------------------
 
 colnames(deltafood)[colnames(deltafood) == "ID"] ="newID"
 
@@ -278,7 +271,6 @@ deltafoodstate$Q10 <- if_else(str_detect(deltafoodstate$Q10,"the only"), "", del
 deltafoodstate$Q10 <- if_else(str_detect(deltafoodstate$Q10,"moon pie"), "moon pies", deltafoodstate$Q10)
 
 
-
 deltafoodstate$Q10 <-gsub("including", "",deltafoodstate$Q10, fixed = TRUE)
 
 deltafoodstate$Q10 <-gsub("goo goo cluster", "googoocluster",deltafoodstate$Q10, fixed = TRUE)
@@ -370,10 +362,12 @@ deltafoodstate$Q10 <-gsub("corn soybeans",
                           "corn, soybeans",deltafoodstate$Q10, fixed = TRUE)
 
 
+## creating state lists ----------------------------------------------------------------------------------------------
+
 summaryfoodstate2 <- deltafoodstate %>% group_by(Q10) %>%
   summarise(count = n())
 
-preparedfood <- read.csv("preparedfood.csv")
+preparedfood <- read.csv("rawdata/preparedfood.csv")
 
 deltafoodstate <- deltafoodstate[!deltafoodstate$Q10 == "none",]
 
@@ -403,7 +397,7 @@ missourisum <- missouri %>% group_by(Q10) %>%
 missourisum$state <- "missouri"
 
 statesum <- rbind(arkansassum,mississsum,louisianasum,tennesseesum)
-write.csv(statesum, "statesummary.csv")
+write.csv(statesum, "cleaneddata/statesummary.csv")
 
 
 ##total delta cleaning (Q11)-------------------------------------------------------------
@@ -470,7 +464,7 @@ delta <- delta[!delta$ResponseId %in% deltafoodbad$ResponseId,]
 delta$Q11 <- if_else(delta$Q11 %in% c("?","alot","idk", "not sure", "no","", "i'm not sure", "dont know", "don't know","no idea","no idew","not surw","unknown","unsure","unsure don't know",
                                       "i have no idea", "n/a","n\a", "nice","i don't know","nothing really","no clue","nothing","i don't really know","i wouldn't know nothing about that",
                                       "na","can't recall","i don't really know about this","idk tbh","i don't know what to do","nothing comes to mind","n\a"), 
-                              "none", delta$Q11)
+                     "none", delta$Q11)
 delta$Q11 <- if_else(delta$Q11 %in% c("barbecue","barbeque","bbq"), "barbecue", delta$Q11)
 delta$Q11 <- if_else(str_detect(delta$Q11,"bbq"), "barbecue", delta$Q11)
 delta$Q11 <- if_else(delta$Q11 %in% c("burgers","burger","hamburger","hamburgers"), "burgers", delta$Q11)
@@ -619,7 +613,7 @@ delta <- delta[!delta$Q11 == "",]
 
 
 delta$Q11 <-gsub("\\s+", 
-                          " ",delta$Q11, fixed = TRUE)
+                 " ",delta$Q11, fixed = TRUE)
 
 
 delta %<>% mutate(t2 = Q11) %>% separate_rows(Q11, sep = "\\s+")
@@ -629,7 +623,7 @@ delta$Q11 <- str_trim(delta$Q11, "left")
 
 delta$Q11 <- if_else(delta$Q11 %in% c("fish","crawfish","shrimp"), "seafood", delta$Q11)
 
-write.csv(delta,"deltacurrent.csv")
+write.csv(delta,"cleaneddata/deltacurrent.csv")
 
 deltasum2 <- delta %>% group_by(Q11) %>%
   summarise(count = n())
@@ -638,12 +632,8 @@ deltasum2 <- delta %>% group_by(Q11) %>%
 
 rm(list=ls()) # Caution: this clears the Environment
 
-deltafood <- read.csv("DFI1024.csv")
+deltafood <- read.csv("rawdata/DFI_survey1.csv")
 
-deltafood <- deltafood[!deltafood$Q2 == "My state is not listed",]
-deltafood <- deltafood[!deltafood$Q2 == "I do not reside in the United States",]
-deltafood <- deltafood[!deltafood$Q10 == "",]
-#deltafood <- deltafood[!deltafood$duration < 100,]
 deltafood$ID <- 1:nrow(deltafood)
 
 deltafood$Q2 <- tolower(deltafood$Q2)
@@ -788,19 +778,5 @@ ggplot() + geom_col(data= summarywild, aes(x = reorder(Q33, -count), y= count))
 
 
 
-##demographics -----------------------------------------------------------------------
 
 
-deltanumeric <- read.csv("DFInumeric.csv")
-deltanumeric <- deltanumeric[!deltanumeric$Q2 == 9,]
-deltanumeric <- deltanumeric[!deltanumeric$Q2 == 10,]
-deltanumeric$ID <- 1:nrow(deltanumeric)
-
-deltanumeric <- deltanumeric[!deltanumeric$Q23 == 3,]
-deltanumeric <- deltanumeric[!deltanumeric$Q23 == 4,]
-
-deltanumeric$Q23 <- ifelse(deltanumeric$Q23 == 1, 0, 1)
-
-
-trustreg <- lm(Q20_1 ~ Q22 + Q23 + Q26, data= deltanumeric)
-summary(trustreg)

@@ -14,7 +14,7 @@ windowsFonts(A = windowsFont("Times New Roman"))
 
 rm(list=ls()) # Caution: this clears the Environment
 
-delta <- read.csv("deltacurrent.csv")
+delta <- read.csv("cleaneddata/deltacurrent.csv")
 
 
 delta <- select(delta, c("Q2","Q11"))
