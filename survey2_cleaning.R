@@ -30,7 +30,7 @@ regions <- c("South", "West", "West", "South", "West", "West", "Northeast", "Nor
 # Create the data frame
 states_df <- data.frame(state = states, region = regions)
 
-
+write.csv(states_df, "state_region.csv")
 
 
 deltafood <- read.csv("rawdata/DFI_survey2.csv")
