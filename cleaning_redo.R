@@ -1,12 +1,12 @@
 
 
 library(dplyr)
-library(formattable)
-library(ggplot2)
+#library(formattable)
+#library(ggplot2)
 library(stringr)
 library(magrittr)
 library(tidyr)
-library(patchwork)
+#library(patchwork)
 
 
 rm(list=ls()) # Caution: this clears the Environment
