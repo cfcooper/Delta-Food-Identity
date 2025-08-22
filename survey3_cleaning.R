@@ -10,4 +10,4 @@ library(tidyr)
 
 rm(list=ls()) # Caution: this clears the Environment
 
-deltafood <- read.csv("rawdata/DFI_survey2.csv")
+dat <- read.csv("rawdata/DFI_survey3.csv")
