@@ -22,6 +22,7 @@ delta <- select(delta, c("Q2","Q11"))
 
 delta <- delta %>% group_by(Q2,Q11) %>% summarise(count = n())
 
+# test test test
 
 delta <- delta[!delta$count == 1,]
 delta <- delta[!delta$count == 2,]

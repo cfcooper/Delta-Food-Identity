@@ -9,7 +9,7 @@ library(magrittr)
 library(tidyr)
 library(patchwork)
 
-windowsFonts(A = windowsFont("Times New Roman"))
+#windowsFonts(A = windowsFont("Times New Roman"))
 
 rm(list=ls()) # Caution: this clears the Environment
 
