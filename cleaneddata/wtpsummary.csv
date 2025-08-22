@@ -1,0 +1,55 @@
+﻿crop,value,infotreatment,region,race,price
+all crops,0.2692,all,all,all,
+all crops,0.66,all,delta,white,
+all crops,1.6551,all,non delta,black,
+all crops,0.1253,delta,all,all,
+all crops,0.1384,delta,delta,all,
+all crops,0.1096,delta,non delta,all,
+all crops,0.8298,black,all,all,
+all crops,0.697,black,delta,all,
+all crops,0.992,black,non delta,all,
+rice,0.2481,all,all,all,1.75
+rice,0.6898,all,delta,white,1.75
+rice,0.3118,all,non delta,black,1.75
+rice,0.1026,delta,all,all,1.75
+rice,0.1136,delta,delta,all,1.75
+rice,0.0893,delta,non delta,all,1.75
+rice,0.8617,black,all,all,1.75
+rice,0.741,black,delta,all,1.75
+rice,1.0023,black,non delta,all,1.75
+sweet corn,0.3143,all,all,all,0.33
+sweet corn,0.6269,all,delta,white,0.33
+sweet corn,1.7537,all,non delta,black,0.33
+sweet corn,0.1608,delta,all,all,0.33
+sweet corn,0.1734,delta,delta,all,0.33
+sweet corn,0.1451,delta,non delta,all,0.33
+sweet corn,0.8158,black,all,all,0.33
+sweet corn,0.6601,black,delta,all,0.33
+sweet corn,1.0147,black,non delta,all,0.33
+sweet potato,0.2706,all,all,all,1
+sweet potato,0.6532,all,delta,white,1
+sweet potato,1.6889,all,non delta,black,1
+sweet potato,0.1255,delta,all,all,1
+sweet potato,0.135,delta,delta,all,1
+sweet potato,0.1135,delta,non delta,all,1
+sweet potato,0.8458,black,all,all,1
+sweet potato,0.7029,black,delta,all,1
+sweet potato,1.025,black,non delta,all,1
+tomato,0.2724,all,all,all,1
+tomato,0.6881,all,delta,white,1
+tomato,,all,non delta,black,1
+tomato,0.1311,delta,all,all,1
+tomato,0.1408,delta,delta,all,1
+tomato,0.1193,delta,non delta,all,1
+tomato,0.8155,black,all,all,1
+tomato,0.7177,black,delta,all,1
+tomato,0.9245,black,non delta,all,
+watermelon,0.2405,all,all,all,5
+watermelon,0.6417,all,delta,white,5
+watermelon,2.8659,all,non delta,black,5
+watermelon,0.1067,delta,all,all,5
+watermelon,0.1289,delta,delta,all,5
+watermelon,0.0805,delta,non delta,all,5
+watermelon,0.8458,black,all,all,5
+watermelon,0.6635,black,delta,all,5
+watermelon,0.9934,black,non delta,all,5
