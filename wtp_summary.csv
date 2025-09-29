@@ -1,0 +1,21 @@
+"Product","Treatment","Model","N","mean","median","lower_ci","upper_ci"
+"Corn","Delta","Price",454,NA,NA,NA,NA
+"Corn","Delta","Pct Change",454,NA,NA,NA,NA
+"Corn","Black","Price",454,NA,NA,NA,NA
+"Corn","Black","Pct Change",454,NA,NA,NA,NA
+"Melon","Delta","Price",454,NA,NA,NA,NA
+"Melon","Delta","Pct Change",454,NA,NA,NA,NA
+"Melon","Black","Price",454,NA,NA,NA,NA
+"Melon","Black","Pct Change",454,NA,NA,NA,NA
+"Tater","Delta","Price",454,NA,NA,NA,NA
+"Tater","Delta","Pct Change",454,NA,NA,NA,NA
+"Tater","Black","Price",454,NA,NA,NA,NA
+"Tater","Black","Pct Change",454,NA,NA,NA,NA
+"Mater","Delta","Price",454,NA,NA,NA,NA
+"Mater","Delta","Pct Change",454,NA,NA,NA,NA
+"Mater","Black","Price",454,NA,NA,NA,NA
+"Mater","Black","Pct Change",454,NA,NA,NA,NA
+"Rice","Delta","Price",454,NA,NA,NA,NA
+"Rice","Delta","Pct Change",454,NA,NA,NA,NA
+"Rice","Black","Price",454,NA,NA,NA,NA
+"Rice","Black","Pct Change",454,NA,NA,NA,NA

@@ -45,6 +45,9 @@ melon_price_b <- melon_price_b %>%
 melon_price_b <- melon_price_b %>%
   rename(p_2 = price)
 
+melon_price_b$av_1 <- 1
+melon_price_b$av_2 <- 1
+
 # rice
 rice_price_b <- select(dat_b, c(1,11:13,33:34,41))
 
