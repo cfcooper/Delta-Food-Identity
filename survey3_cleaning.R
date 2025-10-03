@@ -14,6 +14,7 @@ dat <- read.csv("rawdata/DWTP_3.csv")
 #premium <- read.csv("cleaneddata/wtpsummary.csv")
 
 dat <- dat[!is.na(dat$full_launch), ]
+names(dat) <- trimws(names(dat))
 dat_b <- dat[dat$black != 0, ]
 dat_d <- dat[dat$black != 1, ]
 
@@ -25,7 +26,8 @@ dat_b$tater_price <- 1
 dat_b$mater_price <- 1
 dat_b$rice_price <- 1.75
 
-# melon
+
+# ****** melon ******
 melon_price_b <- select(dat_b, c(1:4,29:30,37))
 
 melon_price_b <- melon_price_b %>%
@@ -47,6 +49,30 @@ melon_price_b <- melon_price_b %>%
 
 melon_price_b$av_1 <- 1
 melon_price_b$av_2 <- 1
+
+
+
+#yes/yes
+dat_b$melonyy <- if_else(dat_b$melonb==2 & dat_b$melonb_high==2, 1, 0)
+dat_d$melonyy <- if_else(dat_d$melond==2 & dat_d$melond_high==2, 1, 0)
+
+
+#yes/no
+dat_b$melonyn <- if_else(dat_b$melonb==2 & dat_b$melonb_high==1, 1, 0)
+dat_d$melonyn <- if_else(dat_d$melond==2 & dat_d$melond_high==1, 1, 0)
+
+
+#no/yes
+dat_b$melonny <- if_else(dat_b$melonb==1 & dat_b$melonb_low==2, 1, 0)
+dat_d$melonny <- if_else(dat_d$melond==1 & dat_d$melond_low==2, 1, 0)
+
+#no/no
+dat_b$melonnn <- if_else(dat_b$melonb==1 & dat_b$melonb_low==1, 1, 0)
+dat_d$melonnn <- if_else(dat_d$melond==1 & dat_d$melond_low==1, 1, 0)
+
+
+
+
 
 # rice
 rice_price_b <- select(dat_b, c(1,11:13,33:34,41))
