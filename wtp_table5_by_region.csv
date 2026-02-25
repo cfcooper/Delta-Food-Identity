@@ -1,0 +1,13 @@
+"Product","Region","Mean WTP ($)","SE","95% CI Lower","95% CI Upper","% Premium"
+"Corn","Delta Region",0.44,0.015,0.411,0.469,33.33
+"Corn","Non-Delta Region",0.454,0.02,0.415,0.493,37.58
+"Mater","Delta Region",1.214,0.018,1.179,1.249,21.4
+"Mater","Non-Delta Region",1.231,0.023,1.186,1.276,23.1
+"Melon","Delta Region",5.821,0.062,5.699,5.943,16.42
+"Melon","Non-Delta Region",5.742,0.061,5.622,5.862,14.84
+"Pooled (All Products)","Delta Region",2.139,0.026,2.087,2.19,21.36
+"Pooled (All Products)","Non-Delta Region",2.141,0.031,2.081,2.202,23.23
+"Rice","Delta Region",2.01,0.019,1.973,2.047,14.86
+"Rice","Non-Delta Region",2.039,0.025,1.99,2.088,16.51
+"Tater","Delta Region",1.208,0.017,1.175,1.241,20.8
+"Tater","Non-Delta Region",1.241,0.025,1.192,1.29,24.1

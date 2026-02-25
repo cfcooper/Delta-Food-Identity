@@ -25,7 +25,7 @@ dat_d <- dat[dat$black != 1, ]
 
 
 
-dat_b <- select(dat_b, c(1,35:49,89:98))  # select columns
+dat_b <- select(dat_b, c(1,35:49,89:98,104:105))  # select columns
 dat_b$melon_price <- 5
 dat_b$corn_price <- .33
 dat_b$tater_price <- 1
@@ -38,7 +38,7 @@ column_lookup <- data.frame(    # column lookup
 )
 
 
-dat_d <- select(dat_d, c(1,16:30,89:98))  # select columns
+dat_d <- select(dat_d, c(1,16:30,89:98,104:105))  # select columns
 dat_d$melon_price <- 5
 dat_d$corn_price <- .33
 dat_d$tater_price <- 1
@@ -331,8 +331,8 @@ column_lookup <- data.frame(    # column lookup
   column_name = names(dat_d)
 )
 
-dat_d <- dat_d[c(1,17:92)]
-dat_b <- dat_b[c(1,17:92)]
+dat_d <- dat_d[c(1,17:94)]
+dat_b <- dat_b[c(1,17:94)]
 
 full_dat <- rbind(dat_d,dat_b)
 saveRDS(dat_d, "cleaneddata/df_delta.rds")
