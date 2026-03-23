@@ -1,0 +1,17 @@
+"target_state","info_treatment","materc1","materc2","count"
+0,"black",0,0,3
+0,"black",0,1,23
+0,"black",1,0,90
+0,"black",1,1,108
+0,"delta",0,0,16
+0,"delta",0,1,32
+0,"delta",1,0,91
+0,"delta",1,1,68
+1,"black",0,0,8
+1,"black",0,1,35
+1,"black",1,0,95
+1,"black",1,1,92
+1,"delta",0,0,8
+1,"delta",0,1,42
+1,"delta",1,0,103
+1,"delta",1,1,94

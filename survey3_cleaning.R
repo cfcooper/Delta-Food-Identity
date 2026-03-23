@@ -20,12 +20,15 @@ column_lookup <- data.frame(    # column lookup
 
 dat <- dat[!is.na(dat$full_launch), ]
 names(dat) <- trimws(names(dat))
+
+dat$race_b <- as.integer(grepl("\\b2\\b", dat$Q15))
+
 dat_b <- dat[dat$black != 0, ]
 dat_d <- dat[dat$black != 1, ]
 
 
 
-dat_b <- select(dat_b, c(1,35:49,89:98,104:105))  # select columns
+dat_b <- select(dat_b, c(1,35:49,89:98,104:107))  # select columns
 dat_b$melon_price <- 5
 dat_b$corn_price <- .33
 dat_b$tater_price <- 1
@@ -38,7 +41,7 @@ column_lookup <- data.frame(    # column lookup
 )
 
 
-dat_d <- select(dat_d, c(1,16:30,89:98,104:105))  # select columns
+dat_d <- select(dat_d, c(1,16:30,89:98,104:107))  # select columns
 dat_d$melon_price <- 5
 dat_d$corn_price <- .33
 dat_d$tater_price <- 1
@@ -331,8 +334,12 @@ column_lookup <- data.frame(    # column lookup
   column_name = names(dat_d)
 )
 
-dat_d <- dat_d[c(1,17:94)]
-dat_b <- dat_b[c(1,17:94)]
+long_dat <- dat[c(1,56:59,61,63:69,)]
+
+saveRDS(ref_dat, "cleaneddata/df_ref.rds")
+
+dat_d <- dat_d[c(1,17:96)]
+dat_b <- dat_b[c(1,17:96)]
 
 full_dat <- rbind(dat_d,dat_b)
 saveRDS(dat_d, "cleaneddata/df_delta.rds")

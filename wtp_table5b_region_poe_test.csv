@@ -1,0 +1,6 @@
+"Product","WTP: Delta Region ($)","% Premium: Delta Region","WTP: Non-Delta Region ($)","% Premium: Non-Delta","WTP Difference ($)","Poe p-value (two-sided)"," "
+"Corn",0.44,33.33,0.454,37.58,0.014,0.5996,""
+"Mater",1.214,21.4,1.231,23.1,0.017,0.569,""
+"Tater",1.208,20.8,1.241,24.1,0.033,0.2484,""
+"Melon",5.821,16.42,5.742,14.84,-0.079,0.3518,""
+"Rice",2.01,14.86,2.039,16.51,0.029,0.3464,""

@@ -58,12 +58,7 @@ long_df <- map_dfr(products, function(prod) {
 })
 
 
-# --- 4. Derive DBDC Bid Bounds -----------------------------------------------
-# In DBDC, WTP is bounded by the two bids depending on the response pattern:
-#   (1, 1) → chose Delta both times → WTP >= price2  (both yes)
-#   (1, 0) → chose Delta Q1, not Q2 → price1 <= WTP < price2  (yes-no)
-#   (0, 1) → didn't Q1, chose Q2    → price2 <= WTP < price1  (no-yes)
-#   (0, 0) → didn't choose Delta either time → WTP < price2  (both no)
+# --- 4. Response Patterns & WTP Bounds --------------------------------------
 
 long_df <- long_df %>%
   mutate(
@@ -73,7 +68,6 @@ long_df <- long_df %>%
       choice1 == 0 & choice2 == 1 ~ "NY",
       choice1 == 0 & choice2 == 0 ~ "NN"
     ),
-    # Lower and upper WTP bounds for interval regression
     wtp_lower = case_when(
       response_pattern == "YY" ~ price2,
       response_pattern == "YN" ~ price1,
@@ -89,38 +83,60 @@ long_df <- long_df %>%
   )
 
 
-# --- 5. Core WTP Helper Function --------------------------------------------
-# Fits a DBDC logit model on a subset of data for one product.
-# Returns mean WTP and delta-method SE.
+# --- 5. Base Prices (P1) per Product ----------------------------------------
+# P1 is constant across respondents; pull once per product for premium calc.
+
+base_prices <- long_df %>%
+  group_by(product) %>%
+  summarise(base_price = mean(price1, na.rm = TRUE), .groups = "drop")
+
+
+# --- 6. Core Estimation Helpers ---------------------------------------------
+
+# Fit DBDC logit; return mean WTP, delta-method SE, and LR test statistics.
+# LR test: compares fitted model (choice ~ bid) to null (choice ~ 1).
+# H0: bid coefficient = 0 (price has no effect on choice; model has no power).
+# chi-sq = 2 * (logLik(full) - logLik(null)), df = 1, p from chi-sq distribution.
 
 fit_wtp <- function(data) {
-  q1 <- data %>% transmute(choice = choice1, bid = price1)
-  q2 <- data %>% transmute(choice = choice2, bid = price2)
-  stacked <- bind_rows(q1, q2)
+  stacked <- bind_rows(
+    data %>% transmute(choice = choice1, bid = price1),
+    data %>% transmute(choice = choice2, bid = price2)
+  )
   
-  model <- glm(choice ~ bid, data = stacked, family = binomial(link = "logit"))
+  model_full <- glm(choice ~ bid,  data = stacked, family = binomial(link = "logit"))
+  model_null <- glm(choice ~ 1,    data = stacked, family = binomial(link = "logit"))
   
-  coefs    <- coef(model)
+  # WTP and delta-method SE
+  coefs    <- coef(model_full)
   a        <- coefs["(Intercept)"]
   b        <- coefs["bid"]
-  vcov_mat <- vcov(model)
-  
+  v        <- vcov(model_full)
   mean_wtp <- -a / b
-  se_wtp   <- sqrt(
-    (vcov_mat["(Intercept)", "(Intercept)"] / b^2) +
-      (a^2 * vcov_mat["bid", "bid"] / b^4) -
-      (2 * a * vcov_mat["(Intercept)", "bid"] / b^3)
-  )
+  se_wtp   <- sqrt(v["(Intercept)","(Intercept)"] / b^2 +
+                     a^2 * v["bid","bid"] / b^4 -
+                     2 * a * v["(Intercept)","bid"] / b^3)
+  
+  # LR test
+  lr_chi2  <- round(2 * (as.numeric(logLik(model_full)) - as.numeric(logLik(model_null))), 3)
+  lr_df    <- 1   # one restriction: bid coefficient = 0
+  lr_p     <- round(pchisq(lr_chi2, df = lr_df, lower.tail = FALSE), 4)
+  lr_sig   <- case_when(lr_p < 0.01 ~ "***", lr_p < 0.05 ~ "**",
+                        lr_p < 0.10 ~ "*",   TRUE ~ "")
   
   tibble(
     mean_wtp = round(mean_wtp, 3),
-    se_wtp   = round(se_wtp, 3),
+    se_wtp   = round(se_wtp,   3),
     ci_lower = round(mean_wtp - 1.96 * se_wtp, 3),
-    ci_upper = round(mean_wtp + 1.96 * se_wtp, 3)
+    ci_upper = round(mean_wtp + 1.96 * se_wtp, 3),
+    lr_chi2  = lr_chi2,
+    lr_df    = lr_df,
+    lr_p     = lr_p,
+    lr_sig   = lr_sig
   )
 }
 
-# Generic grouped WTP runner: takes data + grouping vars, returns WTP per group x product
+# Run fit_wtp() across all products x grouping variables
 run_wtp_by_groups <- function(data, group_vars) {
   data %>%
     group_by(across(all_of(c("product", group_vars)))) %>%
@@ -128,27 +144,47 @@ run_wtp_by_groups <- function(data, group_vars) {
     ungroup()
 }
 
+# Attach % premium = (WTP - P1) / P1 * 100
+add_premium <- function(wtp_df) {
+  wtp_df %>%
+    left_join(base_prices, by = "product") %>%
+    mutate(pct_premium = round((mean_wtp - base_price) / base_price * 100, 2)) %>%
+    select(-base_price)
+}
+
+# z-test for WTP difference between exactly 2 levels of group_col
+z_test_wtp <- function(wtp_df, group_col) {
+  groups <- sort(unique(wtp_df[[group_col]]))
+  if (length(groups) != 2) { warning("z-test requires exactly 2 groups."); return(NULL) }
+  g1 <- groups[1]; g2 <- groups[2]
+  wtp_df %>%
+    select(product, all_of(group_col), mean_wtp, se_wtp, pct_premium) %>%
+    pivot_wider(names_from  = all_of(group_col),
+                values_from = c(mean_wtp, se_wtp, pct_premium),
+                names_sep   = "_") %>%
+    mutate(
+      wtp_diff = .data[[paste0("mean_wtp_", g1)]] - .data[[paste0("mean_wtp_", g2)]],
+      se_diff  = sqrt(.data[[paste0("se_wtp_", g1)]]^2 + .data[[paste0("se_wtp_", g2)]]^2),
+      z_stat   = round(wtp_diff / se_diff, 3),
+      p_value  = round(2 * (1 - pnorm(abs(z_stat))), 4),
+      sig      = case_when(p_value < 0.01 ~ "***", p_value < 0.05 ~ "**",
+                           p_value < 0.10 ~ "*",   TRUE ~ "")
+    ) %>%
+    mutate(across(where(is.numeric), ~ round(.x, 3)))
+}
 
 
-# --- 6. WTP Estimates: All Groupings ----------------------------------------
+# --- 7. WTP + Premium: All Groupings ----------------------------------------
 
-# Overall by product (no subgroups)
-wtp_overall <- run_wtp_by_groups(long_df, character(0))
-
-# By info treatment
-wtp_by_treatment <- run_wtp_by_groups(long_df, "info_treatment")
-
-# By target_state (Delta region vs. non-Delta region)
-wtp_by_region <- run_wtp_by_groups(long_df, "target_state")
-
-# By race (Black vs. non-Black)
-wtp_by_race <- run_wtp_by_groups(long_df, "black")
-
-# By all four combinations of target_state x black (ignoring info treatment)
-wtp_by_region_race <- run_wtp_by_groups(long_df, c("target_state", "black"))
+wtp_overall        <- run_wtp_by_groups(long_df, character(0))              %>% add_premium()
+wtp_by_treatment   <- run_wtp_by_groups(long_df, "info_treatment")          %>% add_premium()
+wtp_by_region      <- run_wtp_by_groups(long_df, "target_state")            %>% add_premium()
+wtp_by_race        <- run_wtp_by_groups(long_df, "black")                   %>% add_premium()
+wtp_by_region_race <- run_wtp_by_groups(long_df, c("target_state", "black")) %>% add_premium()
 
 
-# --- 7. Per-Respondent Interval Midpoint WTP --------------------------------
+# --- 8. Per-Respondent WTP (interval midpoint) ------------------------------
+# Note: LR test is a model-level statistic and is not applicable per-respondent.
 
 respondent_wtp <- long_df %>%
   mutate(
@@ -159,96 +195,100 @@ respondent_wtp <- long_df %>%
       response_pattern == "NN" ~ 0
     )
   ) %>%
+  left_join(base_prices, by = "product") %>%
+  mutate(pct_premium = round((wtp_estimate - base_price) / base_price * 100, 2)) %>%
   select(respondent_id, info_treatment, target_state, black,
-         product, response_pattern, price1, price2, wtp_estimate)
-
-
-# --- 8. z-Test Helper: Pairwise WTP Difference ------------------------------
-
-z_test_wtp <- function(wtp_df, group_col) {
-  groups <- unique(wtp_df[[group_col]])
-  if (length(groups) != 2) {
-    warning("z-test requires exactly 2 groups; skipping.")
-    return(NULL)
-  }
-  g1 <- groups[1]; g2 <- groups[2]
-  
-  wtp_df %>%
-    select(product, all_of(group_col), mean_wtp, se_wtp) %>%
-    pivot_wider(names_from = all_of(group_col),
-                values_from = c(mean_wtp, se_wtp),
-                names_sep = "_") %>%
-    mutate(
-      wtp_diff = .data[[paste0("mean_wtp_", g1)]] - .data[[paste0("mean_wtp_", g2)]],
-      se_diff  = sqrt(.data[[paste0("se_wtp_", g1)]]^2 + .data[[paste0("se_wtp_", g2)]]^2),
-      z_stat   = round(wtp_diff / se_diff, 3),
-      p_value  = round(2 * (1 - pnorm(abs(z_stat))), 4),
-      sig      = case_when(
-        p_value < 0.01 ~ "***",
-        p_value < 0.05 ~ "**",
-        p_value < 0.10 ~ "*",
-        TRUE           ~ ""
-      )
-    ) %>%
-    mutate(across(where(is.numeric), ~ round(.x, 3)))
-}
+         product, response_pattern, price1, price2,
+         wtp_estimate, pct_premium)
 
 
 # --- 9. Summary Tables -------------------------------------------------------
 
-fmt <- function(df) kable(df, format = "simple")
+fmt <- function(df, ...) kable(df, format = "simple", ...)
 
-# ---- Table 1: Overall Mean WTP per Product ----------------------------------
+# Shared column rename helper for display
+rename_for_display <- function(df) {
+  df %>% rename(
+    `Mean WTP ($)`  = mean_wtp,
+    `SE`            = se_wtp,
+    `95% CI Lower`  = ci_lower,
+    `95% CI Upper`  = ci_upper,
+    `% Premium`     = pct_premium,
+    `LR Chi-sq`     = lr_chi2,
+    `LR df`         = lr_df,
+    `LR p-value`    = lr_p,
+    ` `             = lr_sig      # significance stars, no header clutter
+  )
+}
+
+
+# ---- Table 1: Overall Mean WTP + Premium + LR Test per Product --------------
+
 table1 <- wtp_overall %>%
   mutate(Product = str_to_title(product)) %>%
-  select(Product, Mean_WTP = mean_wtp, SE = se_wtp,
-         CI_Lower = ci_lower, CI_Upper = ci_upper)
+  select(Product, mean_wtp, se_wtp, ci_lower, ci_upper,
+         pct_premium, lr_chi2, lr_df, lr_p, lr_sig) %>%
+  rename_for_display()
 
-cat("\n========================================\n")
-cat("Table 1: Overall Mean WTP per Product\n")
-cat("========================================\n")
+cat("\n=======================================================\n")
+cat("Table 1: Overall Mean WTP, Premium, and LR Test per Product\n")
+cat("=======================================================\n")
 print(fmt(table1))
+cat("LR test H0: bid price has no effect on Delta product choice (df = 1).\n")
+cat("Significance: *** p<0.01  ** p<0.05  * p<0.10\n")
 
 
-# ---- Table 2: WTP by Product x Info Treatment + Difference Test -------------
+# ---- Table 2: WTP + Premium + LR Test by Product x Info Treatment ----------
+
 table2 <- wtp_by_treatment %>%
   mutate(Product = str_to_title(product), Treatment = info_treatment) %>%
-  select(Product, Treatment, Mean_WTP = mean_wtp, SE = se_wtp,
-         CI_Lower = ci_lower, CI_Upper = ci_upper)
+  select(Product, Treatment, mean_wtp, se_wtp, ci_lower, ci_upper,
+         pct_premium, lr_chi2, lr_df, lr_p, lr_sig) %>%
+  rename_for_display()
 
 table2_diff <- z_test_wtp(wtp_by_treatment, "info_treatment") %>%
   mutate(Product = str_to_title(product)) %>%
-  select(Product, everything(), -product)
+  select(-product)
 
-cat("\n=================================================\n")
-cat("Table 2: Mean WTP by Product and Info Treatment\n")
-cat("=================================================\n")
+cat("\n=============================================================\n")
+cat("Table 2: Mean WTP, Premium, and LR Test by Product x Info Treatment\n")
+cat("=============================================================\n")
 print(fmt(table2))
-cat("\n--- Table 2b: Treatment Group Difference Test ---\n")
+cat("LR test H0: bid price has no effect on Delta product choice (df = 1).\n")
+cat("Significance: *** p<0.01  ** p<0.05  * p<0.10\n")
+cat("\n--- Table 2b: Info Treatment WTP Difference Test (z-test) ---\n")
 print(fmt(table2_diff))
 cat("Significance: *** p<0.01  ** p<0.05  * p<0.10\n")
 
 
-# ---- Table 3: Per-Respondent WTP Summary ------------------------------------
-table3_respondent <- respondent_wtp %>%
+# ---- Table 3: Per-Respondent WTP Summary -----------------------------------
+
+table3_summary <- respondent_wtp %>%
   group_by(respondent_id, info_treatment, target_state, black) %>%
-  summarise(mean_wtp = round(mean(wtp_estimate, na.rm = TRUE), 3), .groups = "drop") %>%
+  summarise(
+    mean_wtp    = round(mean(wtp_estimate, na.rm = TRUE), 3),
+    pct_premium = round(mean(pct_premium,  na.rm = TRUE), 2),
+    .groups = "drop"
+  ) %>%
   arrange(respondent_id)
 
 table3_wide <- respondent_wtp %>%
-  select(respondent_id, info_treatment, target_state, black, product, wtp_estimate) %>%
-  pivot_wider(names_from = product, values_from = wtp_estimate, names_prefix = "wtp_") %>%
+  select(respondent_id, info_treatment, target_state, black,
+         product, wtp_estimate, pct_premium) %>%
+  pivot_wider(names_from  = product,
+              values_from = c(wtp_estimate, pct_premium),
+              names_sep   = "_") %>%
   arrange(respondent_id)
 
-cat("\n=============================================\n")
-cat("Table 3: Per-Respondent Mean WTP (all products)\n")
-cat("=============================================\n")
-print(fmt(head(table3_respondent, 20)))
-cat("  ... (showing first 20 rows)\n")
+cat("\n=======================================================\n")
+cat("Table 3: Per-Respondent Mean WTP + Premium (first 20 rows)\n")
+cat("(LR test is model-level; not applicable per respondent.)\n")
+cat("=======================================================\n")
+print(fmt(head(table3_summary, 20)))
+cat("  ... (showing first 20 rows; full data exported to CSV)\n")
 
 
-# ---- Table 4: WTP by Race x Region Combinations (all 4 cells) ---------------
-# Groups: Black x Delta region / Black x non-Delta / non-Black x Delta / non-Black x non-Delta
+# ---- Table 4: WTP + Premium + LR Test by Race x Region (4 combinations) ----
 
 table4 <- wtp_by_region_race %>%
   mutate(
@@ -257,91 +297,173 @@ table4 <- wtp_by_region_race %>%
     Race    = ifelse(black == 1, "Black", "Non-Black"),
     Group   = paste(Race, "|", Region)
   ) %>%
-  select(Product, Group, Mean_WTP = mean_wtp, SE = se_wtp,
-         CI_Lower = ci_lower, CI_Upper = ci_upper) %>%
+  select(Product, Group, mean_wtp, se_wtp, ci_lower, ci_upper,
+         pct_premium, lr_chi2, lr_df, lr_p, lr_sig) %>%
+  rename_for_display() %>%
   arrange(Product, Group)
 
-cat("\n=================================================================\n")
-cat("Table 4: Mean WTP by Race x Region (4 combinations, per product)\n")
-cat("=================================================================\n")
+cat("\n==========================================================================\n")
+cat("Table 4: Mean WTP, Premium, and LR Test by Race x Region (4 combinations)\n")
+cat("==========================================================================\n")
 print(fmt(table4))
+cat("LR test H0: bid price has no effect on Delta product choice (df = 1).\n")
+cat("Significance: *** p<0.01  ** p<0.05  * p<0.10\n")
 
 
-# ---- Table 5: WTP by Region (Delta vs. non-Delta), pooled + per product -----
-# Pooled row: fit WTP model across all products combined for each region
+# ---- Table 5: WTP + Premium + LR Test by Region, Pooled + Per Product -------
+# Pooled row: % premium = simple average of the five per-product % premiums.
+# LR chi-sq and p-value are also averaged across products for the pooled row
+# and flagged as approximate summaries, not a single model test.
 
-fit_wtp_pooled <- function(data) {
-  q1 <- data %>% transmute(choice = choice1, bid = price1)
-  q2 <- data %>% transmute(choice = choice2, bid = price2)
-  stacked <- bind_rows(q1, q2)
-  model <- glm(choice ~ bid, data = stacked, family = binomial(link = "logit"))
-  coefs <- coef(model)
-  a <- coefs["(Intercept)"]; b <- coefs["bid"]
-  vcov_mat <- vcov(model)
-  se_wtp <- sqrt(
-    (vcov_mat["(Intercept)", "(Intercept)"] / b^2) +
-      (a^2 * vcov_mat["bid", "bid"] / b^4) -
-      (2 * a * vcov_mat["(Intercept)", "bid"] / b^3)
-  )
-  tibble(mean_wtp = round(-a/b, 3), se_wtp = round(se_wtp, 3),
-         ci_lower = round(-a/b - 1.96*se_wtp, 3),
-         ci_upper = round(-a/b + 1.96*se_wtp, 3))
-}
+region_per_product <- wtp_by_region %>%
+  mutate(level = str_to_title(product))
 
-wtp_region_pooled <- long_df %>%
+region_pooled <- wtp_by_region %>%
   group_by(target_state) %>%
-  group_modify(~ fit_wtp_pooled(.x)) %>%
-  ungroup() %>%
-  mutate(product = "Pooled (All Products)")
-
-table5 <- bind_rows(wtp_region_pooled, wtp_by_region) %>%
-  mutate(
-    Product = ifelse(product == "Pooled (All Products)", "Pooled (All Products)", str_to_title(product)),
-    Region  = ifelse(target_state == 1, "Delta Region", "Non-Delta Region")
+  summarise(
+    mean_wtp    = round(mean(mean_wtp,    na.rm = TRUE), 3),
+    se_wtp      = round(mean(se_wtp,      na.rm = TRUE), 3),
+    ci_lower    = round(mean(ci_lower,    na.rm = TRUE), 3),
+    ci_upper    = round(mean(ci_upper,    na.rm = TRUE), 3),
+    pct_premium = round(mean(pct_premium, na.rm = TRUE), 2),
+    lr_chi2     = round(mean(lr_chi2,     na.rm = TRUE), 3),
+    lr_df       = 1L,
+    lr_p        = round(mean(lr_p,        na.rm = TRUE), 4),
+    lr_sig      = "",    # averaged p-value; don't assign stars to avoid misreading
+    .groups = "drop"
   ) %>%
-  select(Product, Region, Mean_WTP = mean_wtp, SE = se_wtp,
-         CI_Lower = ci_lower, CI_Upper = ci_upper) %>%
-  arrange(Product != "Pooled (All Products)", Product, Region)
+  mutate(product = "pooled", level = "Pooled (Avg of Products)")
 
-table5_diff <- z_test_wtp(
-  bind_rows(wtp_region_pooled, wtp_by_region) %>% rename(product_label = product) %>%
-    mutate(product = ifelse(product_label == "Pooled (All Products)", "Pooled", str_to_title(product_label))),
-  "target_state"
-) %>%
-  rename(
-    `Mean WTP (1=Delta)` = mean_wtp_1,
-    `Mean WTP (0=Non-Delta)` = mean_wtp_0,
-    `SE (Delta)` = se_wtp_1,
-    `SE (Non-Delta)` = se_wtp_0
-  )
+table5_data <- bind_rows(region_pooled, region_per_product) %>%
+  mutate(Region = ifelse(target_state == 1, "Delta Region", "Non-Delta Region"))
 
-cat("\n==========================================================\n")
-cat("Table 5: Mean WTP by Region (Delta vs. Non-Delta), Pooled + Per Product\n")
-cat("==========================================================\n")
+table5 <- table5_data %>%
+  select(Product = level, Region, mean_wtp, se_wtp, ci_lower, ci_upper,
+         pct_premium, lr_chi2, lr_df, lr_p, lr_sig) %>%
+  rename_for_display() %>%
+  arrange(`Product` == "Pooled (Avg of Products)" %>% desc(), `Product`, Region)
+
+table5_diff <- z_test_wtp(wtp_by_region, "target_state") %>%
+  mutate(Product = str_to_title(product)) %>%
+  select(-product)
+
+cat("\n=====================================================================\n")
+cat("Table 5: Mean WTP, Premium, and LR Test by Region, Pooled + Per Product\n")
+cat("=====================================================================\n")
 print(fmt(table5))
-cat("\n--- Table 5b: Region Difference Test ---\n")
+cat("Pooled row: % premium and LR stats are averages across the five products.\n")
+cat("Stars suppressed for pooled LR p-value (averaged across models).\n")
+cat("LR test H0: bid price has no effect on Delta product choice (df = 1).\n")
+cat("Significance: *** p<0.01  ** p<0.05  * p<0.10\n")
+cat("\n--- Table 5b: Region WTP Difference Test (z-test, per product) ---\n")
 print(fmt(table5_diff))
 cat("Significance: *** p<0.01  ** p<0.05  * p<0.10\n")
 
 
-# --- 10. Export Results ------------------------------------------------------
+# --- 10. Table 6: Nested LR Tests — Region and Race Model Comparisons --------
+#
+# For each product, tests whether allowing separate WTP functions per group
+# significantly improves fit over a single pooled model.
+#
+# Restricted model:  choice ~ bid               (one intercept, one bid slope)
+# Unrestricted model: choice ~ bid + group + bid:group  (separate intercept &
+#                     slope per group; equivalent to fitting two separate models)
+#
+# LR stat = 2 * (logLik(unrestricted) - logLik(restricted)), chi-sq(2)
+# df = 2 because two extra parameters are freed: the group intercept shift
+#      and the group x bid slope shift.
+# H0: the two groups share the same WTP function (intercept and bid slope).
+# Rejecting H0 means the groups have statistically different WTP structures.
 
-write.csv(table1,             "wtp_table1_overall.csv",               row.names = FALSE)
-write.csv(table2,             "wtp_table2_by_treatment.csv",          row.names = FALSE)
-write.csv(table2_diff,        "wtp_table2b_treatment_diff_test.csv",  row.names = FALSE)
-write.csv(table3_respondent,  "wtp_table3_per_respondent.csv",        row.names = FALSE)
-write.csv(table3_wide,        "wtp_table3_per_respondent_wide.csv",   row.names = FALSE)
-write.csv(table4,             "wtp_table4_race_x_region.csv",         row.names = FALSE)
-write.csv(table5,             "wtp_table5_by_region.csv",             row.names = FALSE)
-write.csv(table5_diff,        "wtp_table5b_region_diff_test.csv",     row.names = FALSE)
+nested_lr_test <- function(data, group_col, product_name) {
+  
+  prod_data <- data %>% filter(product == product_name)
+  
+  stacked <- bind_rows(
+    prod_data %>% transmute(choice = choice1, bid = price1,
+                            group = .data[[group_col]]),
+    prod_data %>% transmute(choice = choice2, bid = price2,
+                            group = .data[[group_col]])
+  ) %>%
+    mutate(group = factor(group))
+  
+  model_restricted   <- glm(choice ~ bid,             data = stacked,
+                            family = binomial(link = "logit"))
+  model_unrestricted <- glm(choice ~ bid * group,     data = stacked,
+                            family = binomial(link = "logit"))
+  
+  lr_chi2 <- round(2 * (as.numeric(logLik(model_unrestricted)) -
+                          as.numeric(logLik(model_restricted))), 3)
+  lr_df   <- 2   # group intercept + group:bid interaction
+  lr_p    <- round(pchisq(lr_chi2, df = lr_df, lower.tail = FALSE), 4)
+  lr_sig  <- case_when(lr_p < 0.01 ~ "***", lr_p < 0.05 ~ "**",
+                       lr_p < 0.10 ~ "*",   TRUE ~ "")
+  
+  # Log-likelihoods for transparency
+  ll_restricted   <- round(as.numeric(logLik(model_restricted)),   3)
+  ll_unrestricted <- round(as.numeric(logLik(model_unrestricted)), 3)
+  
+  tibble(
+    Product          = str_to_title(product_name),
+    Comparison       = group_col,
+    LL_Restricted    = ll_restricted,
+    LL_Unrestricted  = ll_unrestricted,
+    LR_Chi2          = lr_chi2,
+    LR_df            = lr_df,
+    LR_p             = lr_p,
+    Sig              = lr_sig
+  )
+}
 
-cat("\n✓ All CSV files exported.\n")
-cat("  - wtp_table1_overall.csv\n")
-cat("  - wtp_table2_by_treatment.csv\n")
-cat("  - wtp_table2b_treatment_diff_test.csv\n")
-cat("  - wtp_table3_per_respondent.csv\n")
-cat("  - wtp_table3_per_respondent_wide.csv\n")
-cat("  - wtp_table4_race_x_region.csv\n")
-cat("  - wtp_table5_by_region.csv\n")
-cat("  - wtp_table5b_region_diff_test.csv\n")
+# Run for both grouping variables x all products
+table6_region <- map_dfr(products,
+                         ~ nested_lr_test(long_df, "target_state", .x)) %>%
+  mutate(Comparison = "Delta Region vs. Non-Delta Region")
 
+table6_race <- map_dfr(products,
+                       ~ nested_lr_test(long_df, "black", .x)) %>%
+  mutate(Comparison = "Black vs. Non-Black")
+
+table6 <- bind_rows(table6_region, table6_race) %>%
+  arrange(Comparison, Product) %>%
+  select(Comparison, Product,
+         `LL (Restricted)`   = LL_Restricted,
+         `LL (Unrestricted)` = LL_Unrestricted,
+         `LR Chi-sq`         = LR_Chi2,
+         `df`                = LR_df,
+         `p-value`           = LR_p,
+         ` `                 = Sig)
+
+cat("\n=======================================================================\n")
+cat("Table 6: Nested LR Tests — Do Groups Have Different WTP Functions?\n")
+cat("=======================================================================\n")
+print(fmt(table6))
+cat("Restricted model: choice ~ bid (pooled across group).\n")
+cat("Unrestricted model: choice ~ bid * group (separate intercept & slope per group).\n")
+cat("H0: Both groups share the same WTP function. df = 2.\n")
+cat("Rejecting H0 indicates statistically different WTP structures between groups.\n")
+cat("Significance: *** p<0.01  ** p<0.05  * p<0.10\n")
+
+
+# --- 11. Export Results ------------------------------------------------------
+
+write.csv(table1,         "wtp_table1_overall.csv",               row.names = FALSE)
+write.csv(table2,         "wtp_table2_by_treatment.csv",          row.names = FALSE)
+write.csv(table2_diff,    "wtp_table2b_treatment_diff_test.csv",  row.names = FALSE)
+write.csv(table3_summary, "wtp_table3_per_respondent.csv",        row.names = FALSE)
+write.csv(table3_wide,    "wtp_table3_per_respondent_wide.csv",   row.names = FALSE)
+write.csv(table4,         "wtp_table4_race_x_region.csv",         row.names = FALSE)
+write.csv(table5,         "wtp_table5_by_region.csv",             row.names = FALSE)
+write.csv(table5_diff,    "wtp_table5b_region_diff_test.csv",     row.names = FALSE)
+write.csv(table6,         "wtp_table6_nested_lr_tests.csv",       row.names = FALSE)
+
+cat("\n✓ All CSV files exported:\n")
+cat("  wtp_table1_overall.csv\n")
+cat("  wtp_table2_by_treatment.csv\n")
+cat("  wtp_table2b_treatment_diff_test.csv\n")
+cat("  wtp_table3_per_respondent.csv\n")
+cat("  wtp_table3_per_respondent_wide.csv\n")
+cat("  wtp_table4_race_x_region.csv\n")
+cat("  wtp_table5_by_region.csv\n")
+cat("  wtp_table5b_region_diff_test.csv\n")
+cat("  wtp_table6_nested_lr_tests.csv\n")
