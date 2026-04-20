@@ -36,10 +36,11 @@ dat_b$mater_price <- 1
 dat_b$rice_price <- 1.75
 
 column_lookup <- data.frame(    # column lookup
-  column_number = 1:ncol(dat_d),
-  column_name = names(dat_d)
+  column_number = 1:ncol(dat_b),
+  column_name = names(dat_b)
 )
 
+dat_extra <- select(dat, c(1,50:78))
 
 dat_d <- select(dat_d, c(1,16:30,89:98,104:107))  # select columns
 dat_d$melon_price <- 5
@@ -334,14 +335,15 @@ column_lookup <- data.frame(    # column lookup
   column_name = names(dat_d)
 )
 
-long_dat <- dat[c(1,56:59,61,63:69,)]
+long_dat <- dat[c(1,56:60,62,63:69)]
 
-saveRDS(ref_dat, "cleaneddata/df_ref.rds")
+#saveRDS(ref_dat, "cleaneddata/df_ref.rds")
 
 dat_d <- dat_d[c(1,17:96)]
 dat_b <- dat_b[c(1,17:96)]
 
 full_dat <- rbind(dat_d,dat_b)
+full_dat <- merge(full_dat,long_dat)
 saveRDS(dat_d, "cleaneddata/df_delta.rds")
 saveRDS(dat_b, "cleaneddata/df_black.rds")
 saveRDS(full_dat, "cleaneddata/df_full.rds")

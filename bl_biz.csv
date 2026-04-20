@@ -1,0 +1,15 @@
+,Group,Parent,Variable,mean,sd,state,Mean_SD,,,,,,,,
+1,0,0,Q_83,3.236842105,1.161749234,NA,3.24 (1.16),,,,,,,,
+2,0,0,target,NA,NA,0,NA (NA),,,,,,,,
+3,1,0,Q_83,4.157480315,0.867629473,NA,4.16 (0.87),,,,,,,,
+4,1,0,target,NA,NA,0,NA (NA),,,,,Overall,All Delta,Black Non Delta,White Delta
+5,0,1,Q_83,3.210796915,1.160690619,NA,3.21 (1.16),,,Responsibility to support Black owned Businesses?,,3.421,3.342,3.211,4.157
+6,0,1,target,NA,NA,1,NA (NA),,,,,,,,
+7,1,1,Q_83,3.920454545,1.052873364,NA,3.92 (1.05),,,,,,,,
+8,1,1,target,NA,NA,1,NA (NA),,,,,,,,
+9,0,NA,Q_83,3.50812065,1.16111572,NA,3.51 (1.16),,,,,,,,
+10,0,NA,target,NA,NA,NA,NA (NA),,,,,,,,
+11,1,NA,Q_83,3.341719078,1.173320174,NA,3.34 (1.17),,,,,,,,
+12,1,NA,target,NA,NA,NA,NA (NA),,,,,,,,
+13,Overall,NA,Q_83,3.420704846,1.16985791,NA,3.42 (1.17),,,,,,,,
+14,Overall,NA,target,NA,NA,NA,NA (NA),,,,,,,,
