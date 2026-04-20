@@ -389,7 +389,7 @@ deltafoodstate <- deltafoodstate[!deltafoodstate$Q10 == "",]
 
 summaryfoodstate3 <- deltafoodstate %>% group_by(Q10) %>%
   summarise(count = n())
-
+write.csv(summaryfoodstate3, "cleaneddata/statesummary2.csv")
 
 arkansas <- deltafoodstate[deltafoodstate$Q2 == "arkansas",]
 arkansassum <- arkansas %>% group_by(Q10) %>%
@@ -660,6 +660,12 @@ delta <- delta %>%
   anti_join(preparedfood, by = c("Q11" = "preparedfood"))
 
 write.csv(delta, "cleaneddata/deltaanswers.csv")
+
+okra <- delta[delta$Q11 == "okra",]
+collardgreens <- delta[delta$Q11 == "collardgreens",]
+greens <- delta[delta$Q11 == "greens",]
+
+
 
 ##wanted in delta cleaning (Q12)-------------------------------------------------------------
 
